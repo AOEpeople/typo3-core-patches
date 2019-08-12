@@ -1,0 +1,87 @@
+From b86886fb370daf7eda03be497b81e3551614e96e Mon Sep 17 00:00:00 2001
+From: Chetan Thapliyal <chetan.thapliyal@aoe.com>
+Date: Tue, 5 Dec 2017 10:11:04 +0100
+Subject: [PATCH] [FEATURE] CD-72009 Add hook to customize "page is being
+ generated" temporary page
+
+---
+ .../TypoScriptFrontendController.php          | 63 +++++++++++++++++++
+ 1 file changed, 63 insertions(+)
+
+diff --git a/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php b/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
+index aa049b17fa..18f7c76e80 100644
+--- a/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
++++ b/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
+@@ -2965,6 +2965,69 @@ class TypoScriptFrontendController
+         return !$this->cacheContentFlag && empty($this->activeUrlHandlers);
+     }
+ 
++    /**
++     * Temp cache content
++     * The temporary cache will expire after a few seconds (typ. 30) or will be cleared by the rendered page, which will also clear and rewrite the cache.
++     */
++    public function tempPageCacheContent()
++    {
++        $this->tempContent = false;
++        if (!$this->no_cache) {
++            $seconds = 30;
++            $title = htmlspecialchars($this->tmpl->printTitle($this->page['title']));
++            $request_uri = htmlspecialchars(GeneralUtility::getIndpEnv('REQUEST_URI'));
++            $stdMsg = '
++		<strong>Page is being generated.</strong><br />
++		If this message does not disappear within ' . $seconds . ' seconds, please reload.';
++            $message = $this->config['config']['message_page_is_being_generated'];
++            if ((string)$message !== '') {
++                $message = str_replace('###TITLE###', $title, $message);
++                $message = str_replace('###REQUEST_URI###', $request_uri, $message);
++            } else {
++                $message = $stdMsg;
++            }
++            $temp_content = '<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
++	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
++<html xmlns="http://www.w3.org/1999/xhtml">
++	<head>
++		<title>' . $title . '</title>
++		<meta http-equiv="refresh" content="10" />
++	</head>
++	<body style="background-color:white; font-family:Verdana,Arial,Helvetica,sans-serif; color:#cccccc; text-align:center;">' . $message . '
++	</body>
++</html>';
++            // Fix 'nice errors' feature in modern browsers
++            $padSuffix = '<!--pad-->';
++            // prevent any trims
++            $padSize = 768 - strlen($padSuffix) - strlen($temp_content);
++            if ($padSize > 0) {
++                $temp_content = str_pad($temp_content, $padSize, LF) . $padSuffix;
++            }
++            if (!$this->headerNoCache() && ($cachedRow = $this->getFromCache_queryRow())) {
++                // We are here because between checking for cached content earlier and now some other HTTP-process managed to store something in cache AND it was not due to a shift-reload by-pass.
++                // This is either the "Page is being generated" screen or it can be the final result.
++                // In any case we should not begin another rendering process also, so we silently disable caching and render the page ourselves and that's it.
++                // Actually $cachedRow contains content that we could show instead of rendering. Maybe we should do that to gain more performance but then we should set all the stuff done in $this->getFromCache()... For now we stick to this...
++                $this->set_no_cache('Another process wrote into the cache since the beginning of the render process', true);
++
++            // Since the new Locking API this should never be the case
++            } else {
++                    // Hook to customize temporary page content
++                if (is_array($this->TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['processTempPageContent'])) {
++                    foreach ($this->TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['processTempPageContent'] as $_classRef) {
++                        $_procObj = GeneralUtility::getUserObj($_classRef);
++                        $_procObj->processTempPageContent($temp_content, $this);
++                    }
++                }
++
++                $this->tempContent = true;
++                // This flag shows that temporary content is put in the cache
++                $this->setPageCacheContent($temp_content, $this->config, $GLOBALS['EXEC_TIME'] + $seconds);
++            }
++        }
++    }
++
+     /**
+      * Set cache content to $this->content
+      */
+-- 
+2.20.1
+

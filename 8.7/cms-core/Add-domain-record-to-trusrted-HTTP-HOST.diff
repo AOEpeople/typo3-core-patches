@@ -1,0 +1,100 @@
+From 21405b0d4868329fb128ed8075f8075d02ef27cf Mon Sep 17 00:00:00 2001
+From: Martin Tepper <martin.tepper@aoe.com>
+Date: Mon, 26 Jun 2017 10:27:25 +0200
+Subject: [PATCH] [FEATURE] add "DOMAIN_RECORD" to trusted HTTP_HOST
+ configuration, use queryBuilder
+
+---
+ .../core/Classes/Utility/GeneralUtility.php   | 62 +++++++++++++++++++
+ 1 file changed, 62 insertions(+)
+
+diff --git a/typo3/sysext/core/Classes/Utility/GeneralUtility.php b/typo3/sysext/core/Classes/Utility/GeneralUtility.php
+index 34f0663058..780205d43d 100644
+--- a/typo3/sysext/core/Classes/Utility/GeneralUtility.php
++++ b/typo3/sysext/core/Classes/Utility/GeneralUtility.php
+@@ -47,6 +47,7 @@ class GeneralUtility
+ 
+     const ENV_TRUSTED_HOSTS_PATTERN_ALLOW_ALL = '.*';
+     const ENV_TRUSTED_HOSTS_PATTERN_SERVER_NAME = 'SERVER_NAME';
++    const ENV_TRUSTED_HOSTS_PATTERN_DOMAIN_RECORD = 'DOMAIN_RECORD';
+ 
+     /**
+      * State of host header value security check
+@@ -3142,6 +3143,9 @@ class GeneralUtility
+ 
+         if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['trustedHostsPattern'] === self::ENV_TRUSTED_HOSTS_PATTERN_ALLOW_ALL) {
+             static::$allowHostHeaderValue = true;
++        } elseif ($GLOBALS['TYPO3_CONF_VARS']['SYS']['trustedHostsPattern'] === self::ENV_TRUSTED_HOSTS_PATTERN_DOMAIN_RECORD) {
++            $row = static::getDomainStartPageRecord($hostHeaderValue, static::getIndpEnv('SCRIPT_NAME'));
++            static::$allowHostHeaderValue = !empty($row);
+         } else {
+             static::$allowHostHeaderValue = static::hostHeaderValueMatchesTrustedHostsPattern($hostHeaderValue);
+         }
+@@ -3149,6 +3153,64 @@ class GeneralUtility
+         return static::$allowHostHeaderValue;
+     }
+ 
++    /**
++     * Will find the page carrying the domain record matching the input domain.
++     *
++     * @see TYPO3\CMS\Frontend\Page\PageRepository::getDomainStartPage()
++     * @param string $domain Domain name to search for. Eg. "www.typo3.com". Typical the HTTP_HOST value.
++     * @param string $path Path for the current script in domain. Eg. "/somedir/subdir". Typ. supplied by \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('SCRIPT_NAME')
++     * @return array|false
++     */
++    protected static function getDomainStartPageRecord($domain, $path) {
++        $parsedHostValue = parse_url('http://' . $domain);
++        if (isset($parsedHostValue['port']) && !MathUtility::canBeInterpretedAsInteger($parsedHostValue['port'])) {
++            // a non-numeric port is accepted by most servers and could be used
++            // to spoof HTTP_HOST (like "Host: example.com:@evil.com")
++            return FALSE;
++        }
++        $domain = $parsedHostValue['host'];
++        if (!$domain) {
++            return FALSE;
++        }
++        $path = trim(preg_replace('/\\/[^\\/]*$/', '', $path));
++
++        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_domain');
++        $queryBuilder->getRestrictions();
++        $results = $queryBuilder
++            ->select('sys_domain.domainName AS domainName')
++            ->from('sys_domain')
++            ->join(
++                'sys_domain',
++                'pages',
++                'pages',
++                $queryBuilder->expr()->eq('pages.uid', $queryBuilder->quoteIdentifier('sys_domain.pid'))
++            )
++            ->where(
++                $queryBuilder->expr()->like(
++                    'sys_domain.domainName',
++                    $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($domain) . '%')
++                )
++            )
++            ->execute()
++            ->fetchAll();
++
++        $returnValue = false;
++        foreach ($results as $row) {
++            $parsedHostValue = parse_url('http://' . $row['domainName']);
++            if (!isset($parsedHostValue['host']) || $parsedHostValue['host'] !== $domain) {
++                continue;
++            }
++            if (isset($parsedHostValue['path'])) {
++                if (strncmp($path, $parsedHostValue['path'], strlen($parsedHostValue['path'])) !== 0) {
++                    continue;
++                }
++            }
++            $returnValue = $row;
++            break;
++        }
++        return $returnValue;
++    }
++
+     /**
+      * Checks if the provided host header value matches the trusted hosts pattern without any preprocessing.
+      *
+-- 
+2.20.1
+

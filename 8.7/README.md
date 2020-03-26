@@ -12,6 +12,11 @@
 
 [FEATURE] add "DOMAIN_RECORD" to trusted HTTP_HOST configuration, use queryBuilder
 
+`Update-tstamp-of-record-when-sorting-will-be-updated.diff`
+
+[BUGFIX] DataHandler-Bugfix: When "sorting"-field of DB-record will be updated, then the "tstamp"-field of that
+         DB-record should also be updated (@see https://forge.typo3.org/issues/90841).
+
 ### cms-extbase
 
 `Extends-exception-message.diff`

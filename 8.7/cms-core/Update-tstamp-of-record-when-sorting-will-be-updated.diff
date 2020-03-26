@@ -1,0 +1,29 @@
+From: Jürgen Kußmann <juergen.kussmann@aoe.com>
+Date: Thursday, 26 March 2020 13:45:00 +0200
+Subject: When "sorting"-field of DB-record will be updated, then the "tstamp"-field of that DB-record should also be updated
+
+---
+
+ .../core/Classes/DataHandling/DataHandler.php | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/typo3/sysext/core/Classes/DataHandling/DataHandler.php b/typo3/sysext/core/Classes/DataHandling/DataHandler.php
+index 1187a19810..542199f5a9 100644
+--- a/typo3/sysext/core/Classes/DataHandling/DataHandler.php
++++ b/typo3/sysext/core/Classes/DataHandling/DataHandler.php
+@@ -7552,7 +7552,14 @@ class DataHandler
+             while ($row = $result->fetch()) {
+                 $uid = (int)$row['uid'];
+                 if ($uid) {
+-                    $connection->update($table, [$sortRow => $i], ['uid' => (int)$uid]);
++                    /**
++                     * Bugfix: Field 'tstamp' should also be updated, when sorting will be updated
++                     */
++                    $updateFields = [$sortRow => $i];
++                    if ($GLOBALS['TCA'][$table]['ctrl']['tstamp']) {
++                        $updateFields[$GLOBALS['TCA'][$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
++                    }
++                    $connection->update($table, $updateFields, ['uid' => (int)$uid]);
+                     // This is used to return a sortingValue if the list is resorted because of inserting records inside the list and not in the top
+                     if ($uid == $return_SortNumber_After_This_Uid) {
+                         $i = $i + $intervals;

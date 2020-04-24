@@ -1,0 +1,79 @@
+From 8194eeca76d20d5eae6aa33ecdad834096ebb599 Mon Sep 17 00:00:00 2001
+From: Juergen Kussmann <juergen.kussmann@aoe.com>
+Date: Wed, 15 Nov 2017 11:16:59 +0100
+Subject: [PATCH] [BUGFIX] Fix rendering of inline flexform fields in TCEFORM
+
+The patch is just a workaround to make the flexform inline
+fields work again in Grid Elements.
+---
+ .../Controller/FormInlineAjaxController.php   | 35 +++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+diff --git a/typo3/sysext/backend/Classes/Controller/FormInlineAjaxController.php b/typo3/sysext/backend/Classes/Controller/FormInlineAjaxController.php
+index d4b30b0c75..dc8fcb8778 100644
+--- a/typo3/sysext/backend/Classes/Controller/FormInlineAjaxController.php
++++ b/typo3/sysext/backend/Classes/Controller/FormInlineAjaxController.php
+@@ -95,6 +95,7 @@ class FormInlineAjaxController
+         $formDataCompiler = GeneralUtility::makeInstance(FormDataCompiler::class, $formDataGroup);
+         $parentData = $formDataCompiler->compile($formDataCompilerInputForParent);
+         $parentConfig = $parentData['processedTca']['columns'][$parentFieldName]['config'];
++        $parentConfig = $this->fixParentConfigForFlexFormsWithInlineRecords($parentConfig, $ajaxArguments);
+ 
+         // Child, a record from this table should be rendered
+         $child = $inlineStackProcessor->getUnstableStructure();
+@@ -262,6 +263,7 @@ class FormInlineAjaxController
+         $formDataCompiler = GeneralUtility::makeInstance(FormDataCompiler::class, $formDataGroup);
+         $parentData = $formDataCompiler->compile($formDataCompilerInputForParent);
+         $parentConfig = $parentData['processedTca']['columns'][$parentFieldName]['config'];
++        $parentConfig = $this->fixParentConfigForFlexFormsWithInlineRecords($parentConfig, $ajaxArguments);
+ 
+         if ($parentConfig['type'] === 'flex') {
+             $parentConfig = $this->getParentConfigFromFlexForm($parentConfig, $domObjectId);
+@@ -360,6 +362,8 @@ class FormInlineAjaxController
+             $formDataCompiler = GeneralUtility::makeInstance(FormDataCompiler::class, $formDataGroup);
+             $parentData = $formDataCompiler->compile($formDataCompilerInputForParent);
+             $parentConfig = $parentData['processedTca']['columns'][$parentFieldName]['config'];
++            $parentConfig = $this->fixParentConfigForFlexFormsWithInlineRecords($parentConfig, $ajaxArguments);
++
+             $parentLanguageField = $parentData['processedTca']['ctrl']['languageField'];
+             $parentLanguage = $parentData['databaseRow'][$parentLanguageField];
+             $oldItemList = $parentData['databaseRow'][$parentFieldName];
+@@ -987,4 +991,35 @@ class FormInlineAjaxController
+ 
+         return [];
+     }
++
++    /**
++     * We must fix the parentConfig, if we use a flexForm (e.g. in gridelements) with inline-records - like this example shows:
++     * <myFlexFormFieldWithInlineRecords>
++     *     <TCEforms>
++     *         <label>Label of my FlexForm-field</label>
++     *         <config>
++     *             <type>inline</type>
++     *             <foreign_table>tx_myextension_mytable</foreign_table>
++     *             <minitems>0</minitems>
++     *             <maxitems>999</maxitems>
++     *         </config>
++     *     </TCEforms>
++     * </myFlexFormFieldWithInlineRecords>
++     *
++     * This fix of the parentConfig is just a workaround to make the flexform-inline-fields work again in Grid Elements
++     *
++     * @param array $parentConfig
++     * @param array $ajaxArguments
++     * @return array
++     */
++    private function fixParentConfigForFlexFormsWithInlineRecords(array $parentConfig, array $ajaxArguments)
++    {
++        if (isset($ajaxArguments['context'])) {
++            $context = json_decode($ajaxArguments['context'], true);
++            if (GeneralUtility::hmac(serialize($context['config'])) === $context['hmac']) {
++                $parentConfig = $context['config'];
++            }
++        }
++        return $parentConfig;
++    }
+ }
+-- 
+2.23.0
+

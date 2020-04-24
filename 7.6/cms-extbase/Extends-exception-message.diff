@@ -1,0 +1,28 @@
+From b1f77ee36c7bd0db946b825f58feb7c4b64e76f1 Mon Sep 17 00:00:00 2001
+From: Juergen Kussmann <juergen.kussmann@aoe.com>
+Date: Tue, 29 May 2018 08:30:44 +0200
+Subject: [PATCH] [TASK] exception-message should contain more information why
+ the object could not been created
+
+---
+ typo3/sysext/extbase/Classes/Object/Container/Container.php | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/typo3/sysext/extbase/Classes/Object/Container/Container.php b/typo3/sysext/extbase/Classes/Object/Container/Container.php
+index c2de4a1a9e..3d993ffb30 100644
+--- a/typo3/sysext/extbase/Classes/Object/Container/Container.php
++++ b/typo3/sysext/extbase/Classes/Object/Container/Container.php
+@@ -312,7 +312,9 @@ class Container implements \TYPO3\CMS\Core\SingletonInterface
+                 } elseif (array_key_exists('defaultValue', $argumentInformation)) {
+                     $parameter = $argumentInformation['defaultValue'];
+                 } else {
+-                    throw new \InvalidArgumentException('not a correct info array of constructor dependencies was passed!');
++                    $exceptionMessage = 'not a correct info array of constructor dependencies was passed';
++                    $exceptionMessage .= ' for class "'.$className.'" and constructorArgument "'.serialize($argumentInformation).'"!';
++                    throw new \InvalidArgumentException($exceptionMessage);
+                 }
+             }
+             $parameters[] = $parameter;
+-- 
+2.23.0
+

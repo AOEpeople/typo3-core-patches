@@ -1,0 +1,33 @@
+From 42fda5ff6c70b67318dccd13ceb34e5695329d6b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=BCrgen=20Ku=C3=9Fmann?= <juergen.kussmann@aoe.com>
+Date: Thu, 26 Mar 2020 14:08:03 +0100
+Subject: [PATCH] [BUGFIX ] CD-157807: When "sorting"-field of DB-record will
+ be updated, then the "tstamp"-field of that DB-record should also be updated
+
+---
+ typo3/sysext/core/Classes/DataHandling/DataHandler.php | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/typo3/sysext/core/Classes/DataHandling/DataHandler.php b/typo3/sysext/core/Classes/DataHandling/DataHandler.php
+index b551012f23..387bae3d84 100644
+--- a/typo3/sysext/core/Classes/DataHandling/DataHandler.php
++++ b/typo3/sysext/core/Classes/DataHandling/DataHandler.php
+@@ -7075,7 +7075,14 @@ class DataHandler
+             while ($row = $this->databaseConnection->sql_fetch_assoc($res)) {
+                 $uid = (int)$row['uid'];
+                 if ($uid) {
+-                    $this->databaseConnection->exec_UPDATEquery($table, 'uid=' . (int)$uid, [$sortRow => $i]);
++                    /**
++                     * Bugfix: Field 'tstamp' should also be updated, when sorting will be updated
++                     */
++                    $updateFields = [$sortRow => $i];
++                    if ($GLOBALS['TCA'][$table]['ctrl']['tstamp']) {
++                        $updateFields[$GLOBALS['TCA'][$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
++                    }
++                    $this->databaseConnection->exec_UPDATEquery($table, 'uid=' . (int)$uid, $updateFields);
+                     // This is used to return a sortingValue if the list is resorted because of inserting records inside the list and not in the top
+                     if ($uid == $return_SortNumber_After_This_Uid) {
+                         $i = $i + $intervals;
+-- 
+2.23.0
+

@@ -1,0 +1,32 @@
+From 10a6006ea14f507047816742e727651a10441d5b Mon Sep 17 00:00:00 2001
+From: Chetan Thapliyal <chetan.thapliyal@aoe.com>
+Date: Tue, 5 Dec 2017 10:11:04 +0100
+Subject: [PATCH] [FEATURE] CD-72009 Add hook to customize "page is being
+ generated" temporary page
+
+---
+ .../Classes/Controller/TypoScriptFrontendController.php   | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php b/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
+index 6e3f10b3b5..1fb9ba46ff 100644
+--- a/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
++++ b/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
+@@ -3148,6 +3148,14 @@ class TypoScriptFrontendController
+ 
+                 // Since the new Locking API this should never be the case
+             } else {
++                    // Hook to customize temporary page content
++                if (is_array($this->TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['processTempPageContent'])) {
++                    foreach ($this->TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['processTempPageContent'] as $_classRef) {
++                        $_procObj = GeneralUtility::getUserObj($_classRef);
++                        $_procObj->processTempPageContent($temp_content, $this);
++                    }
++                }
++
+                 $this->tempContent = true;
+                 // This flag shows that temporary content is put in the cache
+                 $this->setPageCacheContent($temp_content, $this->config, $GLOBALS['EXEC_TIME'] + $seconds);
+-- 
+2.23.0
+

@@ -23,6 +23,10 @@
 
 [TASK] exception-message should contain more information why the object could not been created
 
+`81208-workspace-mm-relations.diff`
+
+[BUGFIX] Invalid SQL query when previewing a workspace with translated relations
+
 ### cms-frontend
 
 `Add-hook-to-page-is-being-generated.diff`

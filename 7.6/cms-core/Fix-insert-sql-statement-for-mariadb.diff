@@ -1,0 +1,26 @@
+From 24a5d3405b053237983d75230971abfa5a9c4ed7 Mon Jan 25 00:00:00 2021
+From: Juergen Kussmann <juergen.kussmann@aoe.com>
+Date: Mon, 25 Jan 2021 07:55:34 +0100
+Subject: [PATCH] [FEATURE] Fix INSERT-SQL-statement for new mariaDB-version
+
+---
+ typo3/sysext/core/Classes/Database/DatabaseConnection.php | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/typo3/sysext/core/Classes/Database/DatabaseConnection.php b/typo3/sysext/core/Classes/Database/DatabaseConnection.php
+index 3c04635e7d..76f00fedb0 100644
+--- a/typo3/sysext/core/Classes/Database/DatabaseConnection.php
++++ b/typo3/sysext/core/Classes/Database/DatabaseConnection.php
+@@ -521,7 +521,11 @@ class DatabaseConnection
+         // Quote and escape values
+         $fields_values = $this->fullQuoteArray($fields_values, $table, $no_quote_fields, true);
+         // Build query
+-        $query = 'INSERT INTO ' . $table . ' (' . implode(',', array_keys($fields_values)) . ') VALUES ' . '(' . implode(',', $fields_values) . ')';
++        $dbFields = array_keys($fields_values);
++        foreach ($dbFields as $key => $dbField) {
++            $dbFields[$key] = '`' . $dbField .  '`';
++        }
++        $query = 'INSERT INTO ' . $table . ' (' . implode(',', $dbFields) . ') VALUES ' . '(' . implode(',', $fields_values) . ')';
+         // Return query
+         if ($this->debugOutput || $this->store_lastBuiltQuery) {
+             $this->debug_lastBuiltQuery = $query;

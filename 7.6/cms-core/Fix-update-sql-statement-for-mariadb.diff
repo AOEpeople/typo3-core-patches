@@ -1,0 +1,22 @@
+From 24a5d3405b053237983d75230971abfa5a9c4ed7 Mon Jan 25 00:00:00 2021
+From: Juergen Kussmann <juergen.kussmann@aoe.com>
+Date: Mon, 25 Jan 2021 07:55:34 +0100
+Subject: [PATCH] [FEATURE] Fix UPDATE-SQL-statement for new mariaDB-version
+
+---
+ typo3/sysext/core/Classes/Database/DatabaseConnection.php | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/typo3/sysext/core/Classes/Database/DatabaseConnection.php b/typo3/sysext/core/Classes/Database/DatabaseConnection.php
+index 76f00fedb0..f4b45f1664 100644
+--- a/typo3/sysext/core/Classes/Database/DatabaseConnection.php
++++ b/typo3/sysext/core/Classes/Database/DatabaseConnection.php
+@@ -594,7 +594,7 @@ class DatabaseConnection
+                 // Quote and escape values
+                 $nArr = $this->fullQuoteArray($fields_values, $table, $no_quote_fields, true);
+                 foreach ($nArr as $k => $v) {
+-                    $fields[] = $k . '=' . $v;
++                    $fields[] = '`' . $k . '`=' . $v;
+                 }
+             }
+             // Build query

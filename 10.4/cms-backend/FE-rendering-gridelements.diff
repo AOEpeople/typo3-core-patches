@@ -1,0 +1,31 @@
+From 7adfce0d8e989db14a93e8484e7833dea602c52f Mon Sep 17 00:00:00 2001
+From: Juergen Kussmann <juergen.kussmann@aoe.com>
+Date: Wed, 18 Oct 2017 16:17:43 +0200
+Subject: [PATCH] [BUGFIX] fix FE-rendering of gridElements (config of
+ gridelements could not be determined by loading pages-ts-config)
+
+---
+ typo3/sysext/backend/Classes/Utility/BackendUtility.php | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/typo3/sysext/backend/Classes/Utility/BackendUtility.php b/typo3/sysext/backend/Classes/Utility/BackendUtility.php
+index c76bbebe6f..e05fea5fc3 100644
+--- a/typo3/sysext/backend/Classes/Utility/BackendUtility.php
++++ b/typo3/sysext/backend/Classes/Utility/BackendUtility.php
+@@ -4534,7 +4534,12 @@ class BackendUtility
+             $wsid = static::getBackendUserAuthentication()->workspace;
+         }
+         // Check if workspace is different from zero and record is set:
+-        if ($wsid !== 0 && is_array($row)) {
++        // BUGFIX:
++        // $wsid will be null if method 'BackendUtility::getPagesTSconfig' will be called in frontend-context without logged-in
++        // BE-user (e.g. gridelements do this to load pages-TS-config - which is needed to render gridelements in frontend)!
++        // If $wsid is null and we wouldn't check that than we would 'override' the pages-record (from LIVE-workspace) with the first
++        // found pages-record, which has 'pid=-1'...so gridelements could use a wrong pages-TS-config to render gridelements in frontend!
++        if ($wsid !== null && $wsid !== 0 && is_array($row)) {
+             // Check if input record is a move-placeholder and if so, find the pointed-to live record:
+             $movePldSwap = null;
+             $orig_uid = 0;
+-- 
+2.20.1
+

@@ -1,0 +1,30 @@
+From fa0678ea00a1fae3d8c8c7b76b9396512e6b04fd Mon Sep 17 00:00:00 2001
+From: Tomas Norre Mikkelsen <tomasnorre@gmail.com>
+Date: Mon, 01 Mar 2021 09:10:41 +0100
+Subject: [PATCH] [BUGFIX] Load FlexForm Sections on new before save
+
+FlexForm Section can be added before content element is saved.
+This is done by ensuring that processedTca have a value for list_type.
+
+Earlier the pi_flexform was ignored as the default values on create
+before save was empty.
+
+Resolves: #81684
+Releases: master, 10.4, 9.5
+Change-Id: I62e03cbbd93e8785f58c24dad1e573e8b5e0202b
+---
+
+diff --git a/typo3/sysext/backend/Classes/Controller/FormFlexAjaxController.php b/typo3/sysext/backend/Classes/Controller/FormFlexAjaxController.php
+index d34e5e3..fefad58 100644
+--- a/typo3/sysext/backend/Classes/Controller/FormFlexAjaxController.php
++++ b/typo3/sysext/backend/Classes/Controller/FormFlexAjaxController.php
+@@ -85,6 +85,9 @@
+         // @see issue #80100 for a series of changes in this area
+         if ($command === 'new') {
+             $formDataCompilerInput['databaseRow']['uid'] = $databaseRowUid;
++            $dataStructureKey = $queryParameters['dataStructureIdentifier']['dataStructureKey'];
++            $subtypeValue = substr($dataStructureKey, 0, strpos($dataStructureKey, ','));
++            $formDataCompilerInput['databaseRow'][$processedTca['types'][$recordTypeValue]['subtype_value_field']] = $subtypeValue;
+         }
+         $formData = $formDataCompiler->compile($formDataCompilerInput);
+ 

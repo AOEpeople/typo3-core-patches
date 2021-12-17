@@ -1,0 +1,27 @@
+From 808d601a12d85437220c1939289b1941c73e90ba Fri Dec 17 14:00:00 2021
+From: AOE Dev <dev@aoe.com>
+Date: Fri, 17 Dec 2021 14:00:00 +0200
+Subject: [PATCH] [BUGFIX] CD-227845 Fix frontend-preview on restricted pages
+
+---
+ .../frontend/Classes/Controller/TypoScriptFrontendController.php   | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php b/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
+index abcdf4dc6b..2d979f185d 100644
+--- a/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
++++ b/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
+@@ -681,6 +681,13 @@ class TypoScriptFrontendController implements LoggerAwareInterface
+      */
+     public function initUserGroups()
+     {
++        if ($this->isInPreviewMode() &&
++            $this->context->getAspect('frontend.user')->isLoggedIn() ) {
++            // do NOT create userAspect! Because that would overwrite the already
++            // existing userAspect, which was created in TYPO3\CMS\Frontend\Middleware\PreviewSimulator::process()
++            // @see TYPO3-issue: https://forge.typo3.org/issues/96381
++            return;
++        }
+         $userAspect = $this->fe_user->createUserAspect((bool)$this->loginAllowedInBranch);
+         $this->context->setAspect('frontend.user', $userAspect);
+     }

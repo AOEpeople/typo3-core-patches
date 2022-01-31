@@ -13,3 +13,9 @@
 
 `Fix-frontend-preview-on-restricted-pages.diff`
 [BUGFIX] Fix frontend-preview on restricted pages
+
+
+### gridelements
+
+`fix-moving-of-content-elements-into-gridelements.diff`
+[BUGFIX] fix moving of content elements into gridelements

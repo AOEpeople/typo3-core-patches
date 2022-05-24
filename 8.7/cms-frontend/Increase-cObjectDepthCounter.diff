@@ -1,0 +1,13 @@
+diff --git a/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php b/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
+index aa049b17fa..b544de6088 100644
+--- a/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
++++ b/typo3/sysext/frontend/Classes/Controller/TypoScriptFrontendController.php
+@@ -618,7 +618,7 @@ class TypoScriptFrontendController
+      * interrupting at a depth of 50
+      * @var int
+      */
+-    public $cObjectDepthCounter = 50;
++    public $cObjectDepthCounter = 100;
+ 
+     /**
+      * Used by RecordContentObject and ContentContentObject to ensure the a records is NOT

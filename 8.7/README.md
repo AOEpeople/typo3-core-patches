@@ -30,6 +30,8 @@
 ### cms-frontend
 
 `Add-hook-to-page-is-being-generated.diff`
+`Increase-cObjectDepthCounter.diff`
 
 [FEATURE] Add hook to customize "page is being generated" temporary page
+[TASK] Increase cObjectDepthCounter from 50 to 100 to increase nesting of elements
 

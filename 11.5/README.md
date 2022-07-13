@@ -17,5 +17,9 @@
 
 ### gridelements
 
-`fix-moving-of-content-elements-into-gridelements.diff`
-[BUGFIX] fix moving of content elements into gridelements
+`fix-several-bugs-in-gridelements-v10.diff`
+This patch belongs to gridelements-extension in version 10.x - NOT version 11.x!
+So, you need this patch, if you use gridelements-extension v10.x together with TYPO3 v11.x!
+[BUGFIX] fix copy+paste of content elements in TYPO3-BE (in module 'page')
+[BUGFIX] fix moving of content elements (especially in gridelements)
+[BUGFIX] fix moving+editing+deleting of content elements (especially in gridelements) in workspaces

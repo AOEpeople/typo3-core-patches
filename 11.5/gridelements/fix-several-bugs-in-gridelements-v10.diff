@@ -1,0 +1,451 @@
+ Classes/ContextMenu/ItemProvider.php               |   2 +-
+ Classes/DataHandler/AfterDatabaseOperations.php    |  30 ---
+ Classes/Hooks/DataHandler.php                      |   4 -
+ Classes/Hooks/DrawItem.php                         |  46 +----
+ Classes/Hooks/PageLayoutController.php             | 210 +++++++++++++++++++++
+ Resources/Public/JavaScript/ContextMenuActions.js  |   2 +-
+ Resources/Public/JavaScript/GridElementsOnReady.js |  39 ++--
+ ext_tables.php                                     |   2 +-
+ 8 files changed, 245 insertions(+), 90 deletions(-)
+
+diff --git a/Classes/ContextMenu/ItemProvider.php b/Classes/ContextMenu/ItemProvider.php
+index 6e03c42..6a9f67c 100644
+--- a/Classes/ContextMenu/ItemProvider.php
++++ b/Classes/ContextMenu/ItemProvider.php
+@@ -46,7 +46,7 @@ class ItemProvider extends RecordProvider
+             $end = array_slice($items, $position + 1, null, true);
+ 
+             $items = $beginning + $localItems + $end;
+-            $items['pasteAfter']['additioanlAttributes'] = $this->getAdditionalAttributes('pasteAfter');
++            $items['pasteAfter']['additionalAttributes'] = $this->getAdditionalAttributes('pasteAfter');
+         }
+         return $items;
+     }
+diff --git a/Classes/DataHandler/AfterDatabaseOperations.php b/Classes/DataHandler/AfterDatabaseOperations.php
+index 46f8f48..ff88429 100644
+--- a/Classes/DataHandler/AfterDatabaseOperations.php
++++ b/Classes/DataHandler/AfterDatabaseOperations.php
+@@ -34,36 +34,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
+  */
+ class AfterDatabaseOperations extends AbstractDataHandler
+ {
+-    /**
+-     * Function to adjust colPos, container and grid column of an element
+-     * after it has been moved out of or into a container during a workspace operation
+-     *
+-     * @param array $fieldArray The array of fields and values that have been saved to the datamap
+-     * @param int $uid the ID of the record
+-     * @param DataHandler $parentObj The parent object that triggered this hook
+-     */
+-    public function adjustValuesAfterWorkspaceOperations(array $fieldArray, $uid, DataHandler $parentObj)
+-    {
+-        $workspace = $this->getBackendUser()->workspace;
+-        if ($workspace && (isset($fieldArray['colPos']) || isset($fieldArray['tx_gridelements_container']) || isset($fieldArray['tx_gridelements_columns']))) {
+-            $originalRecord = $parentObj->recordInfo('tt_content', (int)$uid, '*');
+-            if ($originalRecord['t3ver_state'] === 4) {
+-                $updateArray = [];
+-                $movePlaceholder = BackendUtility::getMovePlaceholder('tt_content', (int)$uid, 'uid', $workspace);
+-                if (isset($fieldArray['colPos'])) {
+-                    $updateArray['colPos'] = (int)$fieldArray['colPos'];
+-                }
+-                if (isset($fieldArray['tx_gridelements_container'])) {
+-                    $updateArray['tx_gridelements_container'] = (int)$fieldArray['tx_gridelements_container'];
+-                }
+-                if (isset($fieldArray['tx_gridelements_columns'])) {
+-                    $updateArray['tx_gridelements_columns'] = (int)$fieldArray['tx_gridelements_columns'];
+-                }
+-                $parentObj->updateDB('tt_content', (int)$movePlaceholder['uid'], $updateArray);
+-            }
+-        }
+-    }
+-
+     /**
+      * Gets the current backend user.
+      *
+diff --git a/Classes/Hooks/DataHandler.php b/Classes/Hooks/DataHandler.php
+index ffbb0b6..125b53e 100644
+--- a/Classes/Hooks/DataHandler.php
++++ b/Classes/Hooks/DataHandler.php
+@@ -85,10 +85,6 @@ class DataHandler implements SingletonInterface
+             $hook = GeneralUtility::makeInstance(AfterDatabaseOperations::class);
+             if (strpos($recordUid, 'NEW') !== false) {
+                 $recordUid = $parentObj->substNEWwithIDs[$recordUid];
+-            } else {
+-                if ($table === 'tt_content' && $status === 'update') {
+-                    $hook->adjustValuesAfterWorkspaceOperations($fieldArray, $recordUid, $parentObj);
+-                }
+             }
+             $hook->execute_afterDatabaseOperations($fieldArray, $table, $recordUid, $parentObj);
+         }
+diff --git a/Classes/Hooks/DrawItem.php b/Classes/Hooks/DrawItem.php
+index 1fe9df4..9942fd3 100644
+--- a/Classes/Hooks/DrawItem.php
++++ b/Classes/Hooks/DrawItem.php
+@@ -336,46 +336,16 @@ class DrawItem implements PageLayoutViewDrawItemHookInterface, SingletonInterfac
+         $collectedItems = $this->collectItemsForColumns($parentObject, $colPosValues, $row);
+         $workspace = $this->helper->getBackendUser()->workspace;
+         if ($workspace > 0) {
+-            $workspacePreparedItems = [];
+-            $moveUids = [];
+-            foreach ($collectedItems as $item) {
+-                if ($item['t3ver_state'] === 3) {
+-                    $moveUids[] = (int)$item['t3ver_move_id'];
+-                    $item = BackendUtility::getRecordWSOL('tt_content', (int)$item['uid']);
+-                    $movePlaceholder = BackendUtility::getMovePlaceholder(
+-                        'tt_content',
+-                        (int)$item['uid'],
+-                        '*',
+-                        $workspace
+-                    );
+-                    if (!empty($movePlaceholder)) {
+-                        $item['sorting'] = $movePlaceholder['sorting'];
+-                        $item['tx_gridelements_columns'] = $movePlaceholder['tx_gridelements_columns'];
+-                        $item['tx_gridelements_container'] = $movePlaceholder['tx_gridelements_container'];
+-                    }
+-                } else {
+-                    $item = BackendUtility::getRecordWSOL('tt_content', (int)$item['uid']);
+-                    if ($item['t3ver_state'] === 4) {
+-                        $movePlaceholder = BackendUtility::getMovePlaceholder(
+-                            'tt_content',
+-                            (int)$item['uid'],
+-                            '*',
+-                            $workspace
+-                        );
+-                        if (!empty($movePlaceholder)) {
+-                            $item['sorting'] = $movePlaceholder['sorting'];
+-                            $item['tx_gridelements_columns'] = $movePlaceholder['tx_gridelements_columns'];
+-                            $item['tx_gridelements_container'] = $movePlaceholder['tx_gridelements_container'];
+-                        }
+-                    }
+-                }
+-                $workspacePreparedItems[] = $item;
+-            }
+-            $moveUids = array_flip($moveUids);
+-            $collectedItems = $workspacePreparedItems;
+             foreach ($collectedItems as $key => $item) {
+-                if (isset($moveUids[$item['uid']]) && !$item['_MOVE_PLH']) {
++                $itemRecord = BackendUtility::getRecord('tt_content', (int)$item['uid']);
++                BackendUtility::workspaceOL('tt_content', $itemRecord, $workspace, true);
++
++                if ($itemRecord === false) {
++                    // the 'workspace-version' of the record was moved - so don't show the original-item!
+                     unset($collectedItems[$key]);
++                } else {
++                    // the 'workspace-version' of the record was NOT moved (but maybe changed) - use that itemRecord to show the possible changes!
++                    $collectedItems[$key] = $itemRecord;
+                 }
+             }
+         } else {
+diff --git a/Classes/Hooks/PageLayoutController.php b/Classes/Hooks/PageLayoutController.php
+new file mode 100644
+index 0000000..37c4127
+--- /dev/null
++++ b/Classes/Hooks/PageLayoutController.php
+@@ -0,0 +1,210 @@
++<?php
++
++namespace GridElementsTeam\Gridelements\Hooks;
++
++use TYPO3\CMS\Backend\Clipboard\Clipboard;
++use TYPO3\CMS\Backend\Routing\UriBuilder;
++use TYPO3\CMS\Backend\Utility\BackendUtility;
++use TYPO3\CMS\Backend\View\BackendLayoutView;
++use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
++use TYPO3\CMS\Core\Imaging\Icon;
++use TYPO3\CMS\Core\Imaging\IconFactory;
++use TYPO3\CMS\Core\Utility\GeneralUtility;
++use GridElementsTeam\Gridelements\Backend\LayoutSetup;
++use GridElementsTeam\Gridelements\Helper\Helper;
++
++class PageLayoutController
++{
++    /**
++     * @var array
++     */
++    protected $extensionConfiguration;
++
++    /**
++     * @var Helper
++     */
++    protected $helper;
++
++    /**
++     * @var \TYPO3\CMS\Core\Page\PageRenderer
++     */
++    protected $pageRenderer;
++
++    public function __construct()
++    {
++        $this->extensionConfiguration =  GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('gridelements');
++        $this->helper = Helper::getInstance();
++        $this->pageRenderer = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Page\PageRenderer::class);
++    }
++
++    /**
++     * wrapper function called by hook (\TYPO3\CMS\Backend\Controller\PageLayoutController->renderContent)
++     *
++     * @param array $parameters An array of available parameters
++     * @param \TYPO3\CMS\Backend\Controller\PageLayoutController $pageLayoutController The parent object that triggered this hook
++     */
++    public function drawHeaderHook(array $parameters, \TYPO3\CMS\Backend\Controller\PageLayoutController $pageLayoutController) {
++        $iconFactory = GeneralUtility::makeInstance(IconFactory::class);
++        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Gridelements/GridElementsOnReady');
++        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Gridelements/GridElementsDragDrop');
++        if((boolean)$this->extensionConfiguration['disableDragInWizard'] !== true
++            && (boolean)$this->helper->getBackendUser()->uc['disableDragInWizard'] !== true) {
++            $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Gridelements/GridElementsDragInWizard');
++        }
++
++        /** @var Clipboard $clipObj */
++        $clipObj = GeneralUtility::makeInstance(Clipboard::class); // Start clipboard
++        $clipObj->initializeClipboard();
++        $clipObj->lockToNormal();
++        $clipBoard = $clipObj->clipData['normal'];
++        if (!$this->pageRenderer->getCharSet()) {
++            $this->pageRenderer->setCharSet('utf-8');
++        }
++
++        // pull locallang_db.xml to JS side - only the tx_gridelements_js-prefixed keys
++        $this->pageRenderer->addInlineLanguageLabelFile(
++            'EXT:gridelements/Resources/Private/Language/locallang_db.xml',
++            'tx_gridelements_js'
++        );
++
++        $pAddExtOnReadyCode = '
++                TYPO3.l10n = {
++                    localize: function(langKey){
++                        return TYPO3.lang[langKey];
++                    }
++                }
++            ';
++
++        $id = (int)GeneralUtility::_GP('id');
++        $layout = GeneralUtility::callUserFunction(
++            BackendLayoutView::class . '->getSelectedBackendLayout',
++            $id,
++            $this
++        );
++        if (is_array($layout) && !empty($layout['__config']['backend_layout.']['rows.'])) {
++            /** @var LayoutSetup $layoutSetup */
++            $layoutSetup = GeneralUtility::makeInstance(LayoutSetup::class)->init(0);
++            $layout = ['config' => $layout['__config']['backend_layout.']];
++            $columns = $layoutSetup->checkAvailableColumns($layout, true);
++            if ($columns['allowed'] || $columns['disallowed'] || $columns['maxitems']) {
++                $layout['columns'] = $columns;
++                unset($layout['columns']['allowed']);
++                $layout['allowed'] = $columns['allowed'] ?: [];
++                $layout['disallowed'] = $columns['disallowed'] ?: [];
++                $layout['maxitems'] = $columns['maxitems'] ?: [];
++            }
++        }
++
++        // add Ext.onReady() code from file
++        $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
++        $pAddExtOnReadyCode .= '
++            top.pageColumnsAllowed = ' . json_encode($layout['allowed']) . ';
++            top.pageColumnsDisallowed = ' . json_encode($layout['disallowed']) . ';
++            top.pageColumnsMaxitems = ' . json_encode($layout['maxitems']) . ';
++            top.pasteReferenceAllowed = ' . ($this->getBackendUser()->checkAuthMode(
++                'tt_content',
++                'CType',
++                'shortcut',
++                $GLOBALS['TYPO3_CONF_VARS']['BE']['explicitADmode']
++            ) ? 'true' : 'false') . ';
++            top.skipDraggableDetails = ' . ($this->getBackendUser()->uc['dragAndDropHideNewElementWizardInfoOverlay'] ? 'true' : 'false') . ';
++            top.browserUrl = ' . json_encode((string)$uriBuilder->buildUriFromRoute('wizard_element_browser')) . ';';
++
++        if (!empty($clipBoard) && !empty($clipBoard['el'])) {
++            $clipBoardElement = GeneralUtility::trimExplode('|', key($clipBoard['el']));
++            if ($clipBoardElement[0] === 'tt_content') {
++                $clipBoardElementData = BackendUtility::getRecord('tt_content', (int)$clipBoardElement[1]);
++                $pAddExtOnReadyCode .= '
++            top.clipBoardElementCType = ' . json_encode($clipBoardElementData['CType']) . ';
++            top.clipBoardElementTxGridelementsBackendLayout = ' . json_encode(($clipBoardElementData['CType'] === 'gridelements_pi1') ? $clipBoardElementData['tx_gridelements_backend_layout'] : '') . ';
++            top.clipBoardElementListType = ' . json_encode($clipBoardElementData['list_type']) . ';';
++            } else {
++                $pAddExtOnReadyCode .= "
++            top.clipBoardElementCType = '';
++            top.clipBoardElementTxGridelementsBackendLayout = '';
++            top.clipBoardElementListType = '';";
++            }
++        }
++
++        // Define template (which is used in TYPO3/CMS/Gridelements/GridElementsOnReady) to:
++        // Render button 'Copy content from another page to this place' at new columns AND after each rendered content-element
++        if((boolean)$this->extensionConfiguration['disableCopyFromPageButton'] !== true
++            && (boolean)$this->helper->getBackendUser()->uc['disableCopyFromPageButton'] !== true) {
++            $pAddExtOnReadyCode .= '
++                    top.copyFromAnotherPageLinkTemplate = ' . json_encode('<a class="t3js-paste-new btn btn-default" title="' . $this->getLanguageService()->sL('LLL:EXT:gridelements/Resources/Private/Language/locallang_db.xml:tx_gridelements_js.copyfrompage') . '">' . $iconFactory->getIcon(
++                        'actions-insert-reference',
++                        Icon::SIZE_SMALL
++                    )->render() . '</a>') . ';';
++        }
++
++        // Define templates (which are used in TYPO3/CMS/Gridelements/GridElementsOnReady) to:
++        // Render button 'Paste into this column'  at new columns OR
++        // Render button 'Paste after this record' after each rendered content-element
++        $elFromTable = $clipObj->elFromTable('tt_content');
++        if (!empty($elFromTable)) {
++            $pasteItem = substr(key($elFromTable), 11);
++            $pasteRecord = BackendUtility::getRecord('tt_content', (int)$pasteItem);
++            $pasteTitle = $pasteRecord['header'] ?: $pasteItem;
++            $copyMode = $clipObj->clipData['normal']['mode'] ? '-' . $clipObj->clipData['normal']['mode'] : '';
++            $pAddExtOnReadyCode .= '
++                     top.pasteIntoLinkTemplate = '
++                . $this->tt_content_drawPasteIcon($iconFactory, $pasteItem, $pasteTitle, $copyMode, 't3js-paste-into', 'pasteIntoColumn')
++                . ';
++                    top.pasteAfterLinkTemplate = '
++                . $this->tt_content_drawPasteIcon($iconFactory, $pasteItem, $pasteTitle, $copyMode, 't3js-paste-after', 'pasteAfterRecord')
++                . ';';
++        } else {
++            $pAddExtOnReadyCode .= '
++                top.pasteIntoLinkTemplate = \'\';
++                top.pasteAfterLinkTemplate = \'\';';
++        }
++
++        $this->pageRenderer->addJsInlineCode('gridelementsExtOnReady', $pAddExtOnReadyCode);
++    }
++
++
++    /**
++     * Gets the current backend user.
++     *
++     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
++     */
++    public function getBackendUser()
++    {
++        return $GLOBALS['BE_USER'];
++    }
++
++    /**
++     * getter for language service
++     *
++     * @return \TYPO3\CMS\Core\Localization\LanguageService
++     */
++    public function getLanguageService()
++    {
++        return $GLOBALS['LANG'];
++    }
++
++    /**
++     * Draw a paste icon either for pasting into a column or for pasting after a record
++     *
++     * @param IconFactory $iconFactory
++     * @param int $pasteItem ID of the item in the clipboard
++     * @param string $pasteTitle Title for the JS modal
++     * @param string $copyMode copy or cut
++     * @param string $cssClass CSS class to determine if pasting is done into column or after record
++     * @param string $title title attribute of the generated link
++     *
++     * @return string Generated HTML code with link and icon
++     */
++    protected function tt_content_drawPasteIcon(IconFactory $iconFactory, $pasteItem, $pasteTitle, $copyMode, $cssClass, $title)
++    {
++        $pasteIcon = json_encode(
++            ' <a data-content="' . htmlspecialchars($pasteItem) . '"'
++            . ' data-title="' . htmlspecialchars($pasteTitle) . '"'
++            . ' class="t3js-paste t3js-paste' . htmlspecialchars($copyMode) . ' ' . htmlspecialchars($cssClass) . ' btn btn-default btn-sm"'
++            . ' title="' . htmlspecialchars($this->getLanguageService()->getLL($title)) . '">'
++            . $iconFactory->getIcon('actions-document-paste-into', Icon::SIZE_SMALL)->render()
++            . '</a>'
++        );
++        return $pasteIcon;
++    }
++}
+diff --git a/Resources/Public/JavaScript/ContextMenuActions.js b/Resources/Public/JavaScript/ContextMenuActions.js
+index 94cfd47..29c09a2 100644
+--- a/Resources/Public/JavaScript/ContextMenuActions.js
++++ b/Resources/Public/JavaScript/ContextMenuActions.js
+@@ -41,7 +41,7 @@ define(['jquery', 'TYPO3/CMS/Backend/Modal', 'TYPO3/CMS/Backend/Severity'], func
+         var $anchorElement = $(this);
+         var actionUrl = $anchorElement.data('action-url');
+         var performPaste = function () {
+-            var url = actionUrl + '&redirect=' + top.rawurlencode(top.list_frame.document.location.pathname + top.list_frame.document.location.search);
++            var url = actionUrl + '&redirect=' + encodeURIComponent(top.list_frame.document.location.pathname + top.list_frame.document.location.search);
+ 
+             top.TYPO3.Backend.ContentContainer.setUrl(url);
+             if (table === 'pages' && top.TYPO3.Backend.NavigationContainer.PageTree) {
+diff --git a/Resources/Public/JavaScript/GridElementsOnReady.js b/Resources/Public/JavaScript/GridElementsOnReady.js
+index 61090ec..615ec9e 100644
+--- a/Resources/Public/JavaScript/GridElementsOnReady.js
++++ b/Resources/Public/JavaScript/GridElementsOnReady.js
+@@ -16,7 +16,7 @@
+  * based on jQuery UI
+  */
+ 
+-define(['jquery', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Storage/Persistent', 'TYPO3/CMS/Gridelements/GridElementsDragDrop', 'TYPO3/CMS/Backend/LayoutModule/Paste', 'TYPO3/CMS/Backend/Modal', 'TYPO3/CMS/Backend/Severity'], function ($, AjaxDataHandler, PersistentStorage, DragDrop, Paste, Modal, Severity) {
++define(['jquery', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Storage/Persistent', 'TYPO3/CMS/Gridelements/GridElementsDragDrop', 'TYPO3/CMS/Backend/LayoutModule/Paste', 'TYPO3/CMS/Backend/Modal', 'TYPO3/CMS/Backend/Severity', 'TYPO3/CMS/Backend/Utility/MessageUtility'], function ($, AjaxDataHandler, PersistentStorage, DragDrop, Paste, Modal, Severity, MessageUtility) {
+ 
+     var OnReady = {
+             openedPopupWindow: []
+@@ -38,6 +38,29 @@ define(['jquery', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Storag
+             }
+             OnReady.activateAllCollapseIcons();
+         }
++
++        if (!$('.typo3-TCEforms').length) {
++            // Only add eventListener, when editor is NOT editing any (page- or content-)record
++            window.addEventListener('message', function (e) {
++                // This event is called, when editor selects a contentElement from contentElement-browser
++                // (after editor has clicked the button "Copy content from another page to this place")
++
++                // MessageUtility.MessageUtility is correct as this is not an AMD module
++                if (!MessageUtility.MessageUtility.verifyOrigin(e.origin)) {
++                    throw 'Denied message sent by ' + e.origin;
++                }
++                if (typeof e.data.fieldName === 'undefined') {
++                    throw 'fieldName not defined in message';
++                }
++                if (typeof e.data.value === 'undefined') {
++                    throw 'value not defined in message';
++                }
++
++                // copy selected contentElement
++                tableUid = e.data.value.replace('tt_content_', '') * 1;
++                DragDrop.default.onDrop(tableUid, $('#' + e.data.fieldName).find('.t3js-paste-new'), 'copyFromAnotherPage');
++            });
++        }
+     };
+ 
+     /**
+@@ -144,10 +167,6 @@ define(['jquery', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Storag
+                 } else {
+                     $(this).append(top.pasteAfterLinkTemplate);
+                 }
+-                $(this).find('.t3js-paste').on('click', function (evt) {
+-                    evt.preventDefault();
+-                    Paste.activatePasteModal($(this));
+-                });
+             }
+             $(this).append(top.copyFromAnotherPageLinkTemplate);
+             $(this).find('.t3js-paste-new').on('click', function (evt) {
+@@ -378,16 +397,6 @@ define(['jquery', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Storag
+         OnReady.openedPopupWindow.focus();
+     };
+ 
+-    /**
+-     * gives back the data from the popup window to the copy action
+-     */
+-    if (!$('.typo3-TCEforms').length) {
+-        OnReady.setSelectOptionFromExternalSource = setFormValueFromBrowseWin = function (elementId, tableUid) {
+-            tableUid = tableUid.replace('tt_content_', '') * 1;
+-            DragDrop.default.onDrop(tableUid, $('#' + elementId).find('.t3js-paste-new'), 'copyFromAnotherPage');
+-        }
+-    }
+-
+     /**
+      * activates the toggle icons to open listings of nested grid container structure in the list module
+      */
+diff --git a/ext_tables.php b/ext_tables.php
+index 68c100d..c764587 100644
+--- a/ext_tables.php
++++ b/ext_tables.php
+@@ -7,7 +7,7 @@ if (!defined('TYPO3_MODE')) {
+ if (TYPO3_MODE === 'BE') {
+     include_once(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('gridelements') . 'Classes/Backend/TtContent.php');
+ 
+-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-preProcess'][] = 'GridElementsTeam\\Gridelements\\Hooks\\PageRenderer->addJSCSS';
++    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeaderHook'][] = 'GridElementsTeam\\Gridelements\\Hooks\\PageLayoutController->drawHeaderHook';
+ 
+     $GLOBALS['TBE_STYLES']['skins']['gridelements']['name'] = 'gridelements';
+     $GLOBALS['TBE_STYLES']['skins']['gridelements']['stylesheetDirectories']['gridelements_structure'] = 'EXT:gridelements/Resources/Public/Backend/Css/Skin/';

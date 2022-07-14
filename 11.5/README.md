@@ -17,6 +17,11 @@
 
 ### gridelements
 
+`fix-moving-of-content-elements-into-gridelements.diff`
+This patch belongs to gridelements-extension in version 10.x - NOT version 11.x!
+This patch is deprecated - instead of this, use the patch `fix-several-bugs-in-gridelements-v10.diff`!
+[BUGFIX] fix moving of content elements into gridelements
+
 `fix-several-bugs-in-gridelements-v10.diff`
 This patch belongs to gridelements-extension in version 10.x - NOT version 11.x!
 So, you need this patch, if you use gridelements-extension v10.x together with TYPO3 v11.x!

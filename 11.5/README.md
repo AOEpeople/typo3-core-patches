@@ -12,7 +12,8 @@
 [FEATURE] Add hook to customize "page is being generated" temporary page
 
 `Fix-frontend-preview-on-restricted-pages.diff`
-[BUGFIX] Fix frontend-preview on restricted pages
+[BUGFIX] Fix frontend-preview on restricted pages.
+         The bug is fixed in TYPO3 v11.5.6. So, you only need this bugfix, if you don't use the latest TYPO3-version!
 
 
 ### gridelements

@@ -29,3 +29,7 @@ So, you need this patch, if you use gridelements-extension v10.x together with T
 [BUGFIX] fix copy+paste of content elements in TYPO3-BE (in module 'page')
 [BUGFIX] fix moving of content elements (especially in gridelements)
 [BUGFIX] fix moving+editing+deleting of content elements (especially in gridelements) in workspaces
+
+`fix-backend-layout-wizard-element-not-found.diff`
+This patch fixes the 'Class 'TYPO3\CMS\Backend\View\Wizard\Element\BackendLayoutWizardElement' not found' 
+Error on creating a Backend Layout in gridelements 11.x

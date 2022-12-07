@@ -1,0 +1,25 @@
+From ebd1959b1c84f64c311734da205d57d5fd112d0a Mon Sep 17 00:00:00 2001
+From: AOE Dev <dev@aoe.com>
+Date: Wed, 7 Dec 2022 14:03:55 +0100
+Subject: [PATCH] [FIX] BackendLayoutWizardElement not found
+
+---
+ Classes/Wizard/GridelementsBackendLayoutWizardElement.php | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Classes/Wizard/GridelementsBackendLayoutWizardElement.php b/Classes/Wizard/GridelementsBackendLayoutWizardElement.php
+index 4d4504b..3b55bed 100644
+--- a/Classes/Wizard/GridelementsBackendLayoutWizardElement.php
++++ b/Classes/Wizard/GridelementsBackendLayoutWizardElement.php
+@@ -21,7 +21,7 @@ namespace GridElementsTeam\Gridelements\Wizard;
+  ***************************************************************/
+ 
+ use GridElementsTeam\Gridelements\Backend\LayoutSetup;
+-use TYPO3\CMS\Backend\View\Wizard\Element\BackendLayoutWizardElement;
++use TYPO3\CMS\Backend\Form\Element\BackendLayoutWizardElement;
+ use TYPO3\CMS\Core\TypoScript\Parser\TypoScriptParser;
+ use TYPO3\CMS\Core\Utility\GeneralUtility;
+ 
+-- 
+2.32.1 (Apple Git-133)
+

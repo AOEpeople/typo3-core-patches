@@ -1,0 +1,12 @@
+diff --git a/Resources/Public/JavaScript/GridElementsDragDrop.js b/Resources/Public/JavaScript/GridElementsDragDrop.js
+--- a/Resources/Public/JavaScript/GridElementsDragDrop.js
++++ b/Resources/Public/JavaScript/GridElementsDragDrop.js	(date 1678379259642)
+@@ -111,7 +111,7 @@
+         DragDrop.default.column = $element.closest(DragDrop.default.columnIdentifier);
+         DragDrop.default.column.removeClass('active');
+
+-        $element.parents(DragDrop.default.columnHolderIdentifier).find(DragDrop.default.addContentIdentifier).hide();
++        // $element.parents(DragDrop.default.columnHolderIdentifier).find(DragDrop.default.addContentIdentifier).hide();
+         $element.find(DragDrop.default.dropZoneIdentifier).hide();
+
+         // make the drop zones visible

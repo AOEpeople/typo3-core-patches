@@ -33,3 +33,6 @@ So, you need this patch, if you use gridelements-extension v10.x together with T
 `fix-backend-layout-wizard-element-not-found.diff`
 This patch fixes the 'Class 'TYPO3\CMS\Backend\View\Wizard\Element\BackendLayoutWizardElement' not found' 
 Error on creating a Backend Layout in gridelements 11.x
+
+`fix-gridelements-dragAndDrop-v11.diff`
+This patch fixes the drag and drop for gridelement and normal content elements in TYPO3 v11

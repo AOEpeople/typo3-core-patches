@@ -1,7 +1,8 @@
 diff --git a/Resources/Public/JavaScript/GridElementsDragDrop.js b/Resources/Public/JavaScript/GridElementsDragDrop.js
+index 09b2122..6cf3d2b 100644
 --- a/Resources/Public/JavaScript/GridElementsDragDrop.js
-+++ b/Resources/Public/JavaScript/GridElementsDragDrop.js	(date 1678379259642)
-@@ -111,7 +111,7 @@
++++ b/Resources/Public/JavaScript/GridElementsDragDrop.js
+@@ -111,7 +111,7 @@ define(['jquery', 'jquery-ui/droppable', 'TYPO3/CMS/Backend/LayoutModule/DragDro
          DragDrop.default.column = $element.closest(DragDrop.default.columnIdentifier);
          DragDrop.default.column.removeClass('active');
 

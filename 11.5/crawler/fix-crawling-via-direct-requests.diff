@@ -1,0 +1,21 @@
+diff --git a/cli/bootstrap.php b/cli/bootstrap.php
+index d9a65b5..c2eb86c 100644
+--- a/cli/bootstrap.php
++++ b/cli/bootstrap.php
+@@ -21,7 +21,15 @@ if (!isAbsPath($tempPathThisScript)) {
+     }
+ }
+ 
+-$typo3Root = preg_replace('#typo3conf/ext/crawler/cli/bootstrap.php$#', '', $tempPathThisScript);
++/**
++ * BUGFIX:
++ * We use PHP-lib 'helhum/typo3-secure-web', so we have two index.php-files:
++ *  - one in:   /path-to-typo3-installation/public/index.php
++ *  - other in: /path-to-typo3-installation/private/index.php
++ * $typo3Root without this bugfix links to: /path-to-typo3-installation/private
++ * $typo3Root with    this bugfix links to: /path-to-typo3-installation/public
++ */
++$typo3Root = preg_replace('#/private/typo3conf/ext/crawler/cli/bootstrap.php$#', '/public', $tempPathThisScript);
+ 
+ /**
+  * Second parameter is a base64 encoded serialized array of header data

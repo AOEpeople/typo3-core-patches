@@ -16,6 +16,14 @@
          The bug is fixed in TYPO3 v11.5.6. So, you only need this bugfix, if you don't use the latest TYPO3-version!
 
 
+### crawler
+
+`fix-crawling-via-direct-requests.diff`
+[BUGFIX] When using PHP-lib 'helhum/typo3-secure-web' and extension-configuration 'makeDirectRequests'
+is active in crawler-extension, than we need this patch - otherwise the crawling of pages will fail with
+error 'Called TYPO3 from the wrong document root' in executed tx_crawler_queue-record.
+
+
 ### gridelements
 
 `fix-moving-of-content-elements-into-gridelements.diff`

@@ -23,6 +23,10 @@
 is active in crawler-extension, than we need this patch - otherwise the crawling of pages will fail with
 error 'Called TYPO3 from the wrong document root' in executed tx_crawler_queue-record.
 
+`fix-header-no-cache-hook.diff`
+[BUGFIX] When using TYPO3-hook $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['headerNoCache'] and
+we must check inside that hook, if crawler is currently crawling the TYPO3-page, than we need this bugfix.
+
 
 ### gridelements
 

@@ -1,0 +1,26 @@
+diff --git a/Configuration/RequestMiddlewares.php b/Configuration/RequestMiddlewares.php
+index 262bce4..0ed6885 100644
+--- a/Configuration/RequestMiddlewares.php
++++ b/Configuration/RequestMiddlewares.php
+@@ -18,8 +18,20 @@ return [
+         ],
+         'aoe/crawler/initialization' => [
+             'target' => CrawlerInitialization::class,
++            /**
++             * After 'typo3/cms-frontend/tsfe', because we need the initialized TypoScriptFrontendController-object
++             */
++            'after' => [
++                'typo3/cms-frontend/tsfe',
++            ],
++            /**
++             * Before 'typo3/cms-frontend/prepare-tsfe-rendering', because the crawler must be initialized, before
++             * method TypoScriptFrontendController::headerNoCache is called - because some TYPO3-extensions use
++             * the following hook to check, if crawler is crawling the TYPO3-page:
++             * $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['headerNoCache']
++             */
+             'before' => [
+-                'typo3/cms-core/normalizedParams',
++                'typo3/cms-frontend/prepare-tsfe-rendering',
+             ],
+         ],
+     ],

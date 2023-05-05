@@ -1,13 +1,3 @@
-From 6b224098a30e9d557f0789bddad34d0f8d2d9f94 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Marc=20F=C3=BC=C3=9Flein?= <fischtbengel@hotmail.com>
-Date: Fri, 10 Jun 2022 17:16:55 +0000
-Subject: [PATCH] [TASK] Remove obsolete
- appearance.showRemovedLocalizationRecords option
-
----
- Configuration/TCA/Overrides/tt_content.php | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
 diff --git a/Configuration/TCA/Overrides/tt_content.php b/Configuration/TCA/Overrides/tt_content.php
 index 8485a1f..7786579 100644
 --- a/Configuration/TCA/Overrides/tt_content.php

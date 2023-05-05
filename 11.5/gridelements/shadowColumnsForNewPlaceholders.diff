@@ -1,6 +1,6 @@
-diff --git a/extensions/gridelements/Configuration/TCA/Overrides/tt_content.php b/extensions/gridelements/Configuration/TCA/Overrides/tt_content.php
---- a/extensions/gridelements/Configuration/TCA/Overrides/tt_content.php	
-+++ b/extensions/gridelements/Configuration/TCA/Overrides/tt_content.php	(date 1683279199946)
+diff --git a/Configuration/TCA/Overrides/tt_content.php b/Configuration/TCA/Overrides/tt_content.php
+--- a/Configuration/TCA/Overrides/tt_content.php	
++++ b/Configuration/TCA/Overrides/tt_content.php
 @@ -110,7 +110,9 @@
  );
  

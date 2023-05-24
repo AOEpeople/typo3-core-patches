@@ -1,0 +1,26 @@
+From 6672b1e944f95f65effc2d86bea6b358bab3d3a3 Mon Sep 17 00:00:00 2001
+From: "thomas.layh" <thomas.layh@aoe.com>
+Date: Wed, 24 May 2023 13:15:45 +0200
+Subject: [PATCH] [BUGFIX] add missing headline for modal window for new
+ content element
+
+---
+ .../Backend/Gridelements/Partials/PageLayout/Record.html        | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Resources/Private/Backend/Gridelements/Partials/PageLayout/Record.html b/Resources/Private/Backend/Gridelements/Partials/PageLayout/Record.html
+index ecc1129..aa04001 100644
+--- a/Resources/Private/Backend/Gridelements/Partials/PageLayout/Record.html
++++ b/Resources/Private/Backend/Gridelements/Partials/PageLayout/Record.html
+@@ -21,7 +21,7 @@
+     </div>
+     <f:if condition="{allowEditContent} && {item.column.contentEditable} && {item.column.context.allowNewContent}">
+         <div class="t3js-page-new-ce t3js-page-new-ce-allowed t3-page-ce-wrapper-new-ce" id="colpos-{item.column.columnNumber}-page-{item.context.pageId}-{item.column.uniqueId}">
+-            <a href="{item.newContentAfterUrlWithRestrictions}" title="{item.newContentAfterLinkTitle}" data-title="{item.newContentAfterLinkTitle}"
++            <a href="{item.newContentAfterUrlWithRestrictions}" title="{newContentTitle}" data-title="{newContentTitle}"
+                 class="btn btn-default btn-sm {f:if(condition:item.column.context.drawingConfiguration.showNewContentWizard, then: 't3js-toggle-new-content-element-wizard disabled')}">
+                 <core:icon identifier="actions-add" />
+                 {newContentTitleShort}
+-- 
+2.40.1
+

@@ -1,0 +1,26 @@
+From 304512715486118e1ba53015e8a6d4a77c248fb6 Mon Sep 17 00:00:00 2001
+From: "thomas.layh" <thomas.layh@aoe.com>
+Date: Tue, 30 May 2023 10:36:51 +0200
+Subject: [PATCH] [BUGFIX] getter returns wrong variable in
+ GridelementsGridColumn
+
+---
+ Classes/View/BackendLayout/Grid/GridelementsGridColumn.php | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Classes/View/BackendLayout/Grid/GridelementsGridColumn.php b/Classes/View/BackendLayout/Grid/GridelementsGridColumn.php
+index 4441d23..3ebefbc 100644
+--- a/Classes/View/BackendLayout/Grid/GridelementsGridColumn.php
++++ b/Classes/View/BackendLayout/Grid/GridelementsGridColumn.php
+@@ -240,7 +240,7 @@ class GridelementsGridColumn extends GridColumn
+      */
+     public function getAllowedGridType(): ?string
+     {
+-        return $this->disallowedGridType;
++        return $this->allowedGridType;
+     }
+ 
+     /**
+-- 
+2.40.1
+

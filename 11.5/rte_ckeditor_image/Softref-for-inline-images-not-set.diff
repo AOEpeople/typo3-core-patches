@@ -1,0 +1,30 @@
+From 67d86b38624db2f08b5984195bc2fcd0e38c001d Mon Sep 17 00:00:00 2001
+From: Sybille Peters <sypets@gmx.de>
+Date: Sun, 9 Apr 2023 12:05:15 +0200
+Subject: [PATCH] Fix RteImageSoftReferenceParser
+
+The reference index entry was previously not created, because
+a SoftReferenceParserResult was created with the wrong format.
+
+Resolves: #45
+---
+ .../SoftReference/RteImageSoftReferenceParser.php           | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/Classes/DataHandling/SoftReference/RteImageSoftReferenceParser.php b/Classes/DataHandling/SoftReference/RteImageSoftReferenceParser.php
+index b94af42..785db4f 100644
+--- a/Classes/DataHandling/SoftReference/RteImageSoftReferenceParser.php
++++ b/Classes/DataHandling/SoftReference/RteImageSoftReferenceParser.php
+@@ -99,11 +99,7 @@ private function findImageTags(string $content): array
+             return [];
+         }
+ 
+-        // Assemble result array
+-        return [
+-            'content'  => implode('', $this->splitContentTags),
+-            'elements' => $images,
+-        ];
++        return $images;
+     }
+ 
+     /**

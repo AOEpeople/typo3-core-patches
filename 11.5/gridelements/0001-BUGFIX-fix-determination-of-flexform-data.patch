@@ -1,0 +1,47 @@
+From 26167653dfbc0e62fec0fd1c7ca96be186833069 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=BCrgen=20Ku=C3=9Fmann?= <juergen.kussmann@aoe.com>
+Date: Tue, 11 Jul 2023 14:38:45 +0200
+Subject: [PATCH] [BUGFIX] fix determination of flexform-data
+
+---
+ Classes/Hooks/TtContentFlexForm.php | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/Classes/Hooks/TtContentFlexForm.php b/Classes/Hooks/TtContentFlexForm.php
+index cbd2d79..bb1fb16 100644
+--- a/Classes/Hooks/TtContentFlexForm.php
++++ b/Classes/Hooks/TtContentFlexForm.php
+@@ -51,7 +51,7 @@ class TtContentFlexForm
+     public function getDataStructureIdentifierPreProcess(array $tca, string $tableName, string $fieldName, array $row): array
+     {
+         if ($tableName === 'tt_content' && $fieldName === 'pi_flexform' && $row['CType'] === 'gridelements_pi1') {
+-            if (!empty($row['tx_gridelements_backend_layout']) && !empty($row['uid']) && !empty($row['pid'])) {
++            if ($this->isFlexFormDeterminable($row)) {
+                 if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) < 11000000) {
+                     BackendUtility::fixVersioningPid($tableName, $row);
+                 }
+@@ -139,4 +139,21 @@ class TtContentFlexForm
+         }
+         return '';
+     }
++
++    /**
++     * Check, if we are able to determine the flexform-data
++     *
++     * @param array $row
++     * @return bool
++     */
++    private function isFlexFormDeterminable(array $row): bool
++    {
++        if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) < 11000000) {
++            // In TYPO3v10, we maybe need the uid of the gridElements-record in method BackendUtility::fixVersioningPid
++            return !empty($row['tx_gridelements_backend_layout']) && !empty($row['pid']) && !empty($row['uid']);
++        }
++        // In TYPO3v11 we don't need the uid of the gridElements-record
++        // If we copy a gridElements-record, then the uid of the new gridElements-record is NOT available - but we don't need the uid, so it's OK!
++        return !empty($row['tx_gridelements_backend_layout']) && !empty($row['pid']);
++    }
+ }
+-- 
+2.41.0.windows.2
+

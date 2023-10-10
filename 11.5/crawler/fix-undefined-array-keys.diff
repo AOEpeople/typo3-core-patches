@@ -1,0 +1,23 @@
+From 604cc672b1442f1f626360918bf7abdb6a879756 Mon Sep 17 00:00:00 2001
+From: Patrick Lenk <Patta@users.noreply.github.com>
+Date: Tue, 23 May 2023 08:38:46 +0200
+Subject: [PATCH] [BUGFIX] Prevent undefined array key uid and username in
+ FrontendUserAuthentication (#1014)
+
+---
+ Classes/Middleware/FrontendUserAuthenticator.php | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Classes/Middleware/FrontendUserAuthenticator.php b/Classes/Middleware/FrontendUserAuthenticator.php
+index 08a0b2c61..a9ef0a7b4 100644
+--- a/Classes/Middleware/FrontendUserAuthenticator.php
++++ b/Classes/Middleware/FrontendUserAuthenticator.php
+@@ -127,6 +127,8 @@ private function getFrontendUser(string $grList, ServerRequestInterface $request
+         /** @var FrontendUserAuthentication $frontendUser */
+         $frontendUser = $request->getAttribute('frontend.user');
+         $frontendUser->user[$frontendUser->usergroup_column] = '0,-2,' . $grList;
++        $frontendUser->user[$frontendUser->userid_column] = 0;
++        $frontendUser->user[$frontendUser->username_column] = '';
+         $frontendUser->fetchGroupData($request);
+         $frontendUser->user['uid'] = PHP_INT_MAX;
+         return $frontendUser;

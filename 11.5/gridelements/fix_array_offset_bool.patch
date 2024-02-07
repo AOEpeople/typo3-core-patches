@@ -1,17 +1,16 @@
-Index: extensions/gridelements/Classes/Helper/Helper.php
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/extensions/gridelements/Classes/Helper/Helper.php b/extensions/gridelements/Classes/Helper/Helper.php
---- a/extensions/gridelements/Classes/Helper/Helper.php	
-+++ b/extensions/gridelements/Classes/Helper/Helper.php	(date 1707288375124)
-@@ -185,8 +185,7 @@
+diff --git a/Classes/Helper/Helper.php b/Classes/Helper/Helper.php
+index f354638..bbcf619 100644
+--- a/Classes/Helper/Helper.php
++++ b/Classes/Helper/Helper.php
+@@ -185,8 +185,10 @@ public function getPidFromUid(int $uid = 0): int
              )
              ->execute()
              ->fetch();
 -        $pid = (int)$triggerElement['pid'];
 -        return is_array($triggerElement) && $pid ? $pid : 0;
++        if ($triggerElement === false) {
++            return 0;
++        }
 +        return (int)($triggerElement['pid'] ?? 0);
      }
  

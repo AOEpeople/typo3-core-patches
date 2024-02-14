@@ -6,6 +6,13 @@
 [BUGFIX] fix FE-rendering of gridElements (config of gridelements could not be determined by loading pages-ts-config)
 
 
+### cms-core
+
+`fix-update-tstamp-when-increase-sorting-of-records.patch`
+[BUGFIX] Update the tstamp of records, when sorting of records will be increased.
+         Without this bugfix, a merging between records (of production- and deploy-environment) can't be done without errors.
+
+
 ### cms-frontend
 
 `Add-hook-to-page-is-being-generated.diff`

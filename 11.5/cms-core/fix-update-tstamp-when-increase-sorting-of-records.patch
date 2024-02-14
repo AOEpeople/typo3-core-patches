@@ -1,0 +1,14 @@
+diff --git a/typo3/sysext/core/Classes/DataHandling/DataHandler.php b/typo3/sysext/core/Classes/DataHandling/DataHandler.php
+index 74f9152b43..1f20e8bf8d 100644
+--- a/typo3/sysext/core/Classes/DataHandling/DataHandler.php
++++ b/typo3/sysext/core/Classes/DataHandling/DataHandler.php
+@@ -7833,6 +7833,9 @@ class DataHandler implements LoggerAwareInterface
+                 ->update($table)
+                 ->where($queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter($pid, Connection::PARAM_INT)))
+                 ->set($sortBy, $queryBuilder->quoteIdentifier($sortBy) . ' + ' . $this->sortIntervals . ' + ' . $this->sortIntervals, false);
++            if ($GLOBALS['TCA'][$table]['ctrl']['tstamp'] ?? false) {
++                $queryBuilder->set($GLOBALS['TCA'][$table]['ctrl']['tstamp'], $GLOBALS['EXEC_TIME']);
++            }
+             if ($sortingValue !== null) {
+                 $queryBuilder->andWhere($queryBuilder->expr()->gt($sortBy, $sortingValue));
+             }

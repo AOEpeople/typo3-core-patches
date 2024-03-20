@@ -1,0 +1,17 @@
+From: "thomas.layh" <thomas.layh@aoe.com>
+Subject: Fix for the converted notice to error in PHP 8.3
+
+===================================================================
+diff --git a/Classes/Converter/JsonCompatibilityConverter.php b/Classes/Converter/JsonCompatibilityConverter.php
+--- a/Classes/Converter/JsonCompatibilityConverter.php
++++ b/Classes/Converter/JsonCompatibilityConverter.php	(date 1710924276971)
+@@ -36,7 +36,8 @@
+      */
+     public function convert(string $dataString)
+     {
+-        $unserialized = unserialize($dataString, ['allowed_classes' => false]);
++        // @todo fix for php8.3, should be removed or updated for TYPO3v12
++        $unserialized = @unserialize($dataString, ['allowed_classes' => false]);
+         if (is_object($unserialized)) {
+             throw new \Exception('Objects are not allowed: ' . var_export($unserialized, true), 1593758307);
+         }

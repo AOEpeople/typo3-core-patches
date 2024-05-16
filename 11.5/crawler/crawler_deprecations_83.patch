@@ -1,11 +1,10 @@
-Index: extensions/crawler/Classes/Command/BuildQueueCommand.php
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
+From: "thomas.layh" <thomas.layh@aoe.com>
+Subject: Fix deprecations in 8.3
+
 ===================================================================
-diff --git a/extensions/crawler/Classes/Command/BuildQueueCommand.php b/extensions/crawler/Classes/Command/BuildQueueCommand.php
---- a/extensions/crawler/Classes/Command/BuildQueueCommand.php	
-+++ b/extensions/crawler/Classes/Command/BuildQueueCommand.php	(date 1715841877782)
+diff --git a/Classes/Command/BuildQueueCommand.php b/extensions/crawler/Classes/Command/BuildQueueCommand.php
+--- a/Classes/Command/BuildQueueCommand.php	
++++ b/Classes/Command/BuildQueueCommand.php	(date 1715841877782)
 @@ -134,9 +134,9 @@
  
          $pageId = MathUtility::forceIntegerInRange((int) $input->getArgument('page'), 0);
@@ -17,4 +16,3 @@ diff --git a/extensions/crawler/Classes/Command/BuildQueueCommand.php b/extensio
 +            $output->writeln("<info>{$message}</info>");
              return 1;
          }
- 

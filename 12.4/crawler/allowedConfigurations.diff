@@ -1,0 +1,21 @@
+diff --git a/Classes/Service/QueueService.php b/Classes/Service/QueueService.php
+index e66c411..6c04082 100644
+--- a/Classes/Service/QueueService.php
++++ b/Classes/Service/QueueService.php
+@@ -36,7 +36,7 @@ class QueueService
+         $this->crawlerController->setID = GeneralUtility::md5int(microtime());
+     }
+
+-    public function addPageToQueue(int $pageUid, int $time = 0): void
++    public function addPageToQueue(int $pageUid, int $time = 0, array $allowedConfigurations = []): void
+     {
+         if ($this->crawlerController === null) {
+             return;
+@@ -48,7 +48,6 @@ class QueueService
+         // when clearing the cache, therefore we allow all configurations in this case.
+         // This next lines could be skipped as it will return the incoming configurations, but for visibility and
+         // later implementation it's kept as it do no harm.
+-        $allowedConfigurations = [];
+         $configurations = ConfigurationService::removeDisallowedConfigurations($allowedConfigurations, $configurations);
+         $downloadUrls = [];
+         $duplicateTrack = [];

@@ -1,12 +1,3 @@
-From 72fdba3eaf36b67b76c6ac6417e45add98be623f Mon Sep 17 00:00:00 2001
-From: "thomas.layh" <thomas.layh@aoe.com>
-Date: Mon, 7 Oct 2024 11:42:53 +0200
-Subject: [PATCH] chore: fix lightbox stuff
-
----
- Configuration/TypoScript/ImageRendering/setup.typoscript | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
 diff --git a/Configuration/TypoScript/ImageRendering/setup.typoscript b/Configuration/TypoScript/ImageRendering/setup.typoscript
 index 9bf8fe7..1e3adac 100755
 --- a/Configuration/TypoScript/ImageRendering/setup.typoscript
@@ -20,5 +11,3 @@ index 9bf8fe7..1e3adac 100755
      tags.img = TEXT
      tags.img {
          current = 1
---
-2.46.2

@@ -1,0 +1,13 @@
+diff --git a/cli/bootstrap.php b/cli/bootstrap.php
+index d9a65b5..ec22765 100644
+--- a/cli/bootstrap.php
++++ b/cli/bootstrap.php
+@@ -21,7 +21,7 @@ if (!isAbsPath($tempPathThisScript)) {
+     }
+ }
+ 
+-$typo3Root = preg_replace('#typo3conf/ext/crawler/cli/bootstrap.php$#', '', $tempPathThisScript);
++$typo3Root = preg_replace('#private/vendor/tomasnorre/crawler/cli/bootstrap.php$#', 'public/', $tempPathThisScript);
+ 
+ /**
+  * Second parameter is a base64 encoded serialized array of header data

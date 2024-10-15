@@ -1,0 +1,14 @@
+diff --git a/typo3/sysext/core/Classes/DataHandling/DataHandler.php b/typo3/sysext/core/Classes/DataHandling/DataHandler.php
+index 6a7e569ca3d..8a4c35b7a3c 100644
+--- a/typo3/sysext/core/Classes/DataHandling/DataHandler.php
++++ b/typo3/sysext/core/Classes/DataHandling/DataHandler.php
+@@ -8044,6 +8044,9 @@ class DataHandler
+                 ->update($table)
+                 ->where($queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter($pid, Connection::PARAM_INT)))
+                 ->set($sortBy, $queryBuilder->quoteIdentifier($sortBy) . ' + ' . $this->sortIntervals . ' + ' . $this->sortIntervals, false);
++            if ($GLOBALS['TCA'][$table]['ctrl']['tstamp'] ?? false) {
++                $queryBuilder->set($GLOBALS['TCA'][$table]['ctrl']['tstamp'], $GLOBALS['EXEC_TIME']);
++            }
+             if ($sortingValue !== null) {
+                 $queryBuilder->andWhere($queryBuilder->expr()->gt($sortBy, $sortingValue));
+             }

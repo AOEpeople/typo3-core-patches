@@ -1,0 +1,15 @@
+diff --git a/Classes/Domain/Factory/PageView/ContentStorage.php b/Classes/Domain/Factory/PageView/ContentStorage.php
+index 3fa2cf6..e0cd1e6 100644
+--- a/Classes/Domain/Factory/PageView/ContentStorage.php
++++ b/Classes/Domain/Factory/PageView/ContentStorage.php
+@@ -41,7 +41,9 @@ abstract class ContentStorage
+     protected function buildRecords(int $pid, int $language): array
+     {
+         $records = $this->database->fetchRecordsByPidAndLanguage($pid, $language);
+-        $records = $this->workspaceOverlay($records);
++        if ($this->workspaceId > 0) {
++            $records = $this->workspaceOverlay($records);
++        }
+         $records = $this->recordsByContainer($records);
+         return $records;
+     }

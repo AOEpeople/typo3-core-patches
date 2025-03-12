@@ -1,0 +1,20 @@
+Subject: [PATCH] chore: update webshop kit to new dev version
+---
+Index: Classes/Domain/Service/ContainerService.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Classes/Domain/Service/ContainerService.php b/Classes/Domain/Service/ContainerService.php
+--- a/Classes/Domain/Service/ContainerService.php	(revision bb8834b539bdd8135e3cdfeee7db89012da75775)
++++ b/Classes/Domain/Service/ContainerService.php	(date 1741783583690)
+@@ -71,8 +71,6 @@
+ 
+     public function getAfterContainerElementTarget(Container $container): int
+     {
+-        $target = $this->getAfterContainerRecord($container);
+-
+-        return -$target['uid'];
++        return -$container->getContainerRecord()['uid'];
+     }
+ }

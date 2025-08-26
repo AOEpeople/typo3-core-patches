@@ -8,6 +8,5 @@ index d9a65b5..ec22765 100644
  
 -$typo3Root = preg_replace('#vendor/tomasnorre/crawler/cli/bootstrap.php$#', 'public/', $tempPathThisScript);
 +$typo3Root = preg_replace('#private/vendor/tomasnorre/crawler/cli/bootstrap.php$#', 'public/', $tempPathThisScript);
- 
  /**
   * Second parameter is a base64 encoded serialized array of header data

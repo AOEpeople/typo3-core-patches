@@ -1,0 +1,112 @@
+diff --git a/Resources/Public/JavaScript/paste-reference-drag-drop.js b/Resources/Public/JavaScript/paste-reference-drag-drop.js
+index a0b7114..5d779ef 100644
+--- a/Resources/Public/JavaScript/paste-reference-drag-drop.js
++++ b/Resources/Public/JavaScript/paste-reference-drag-drop.js
+@@ -126,10 +126,9 @@ DragDrop.default = {
+ 
+     $(DragDrop.default.dropZoneIdentifier).not(DragDrop.default.ownDropZone).each(function () {
+       $(this).addClass(DragDrop.default.validDropZoneClass);
+-      if (($(this).not(disabledDropZones).length
+-        || siblingsDropZones.length
+-      ) &&
+-      $(this).parent().find('.icon-actions-add').length
++      if (
++        ($(this).not(disabledDropZones).length || siblingsDropZones.length)
++        && $(this).parent().find('.icon-actions-add').length
+       ) {
+         $(this).addClass(DragDrop.default.validDropZoneClass);
+       } else {
+@@ -173,6 +172,7 @@ DragDrop.default = {
+    */
+   onDrop: function ($draggableElement, $droppableElement, evt, reference) {
+     const newColumn = DragDrop.default.getColumnPositionForElement($droppableElement) ?? 0;
++    const containerParent = DragDrop.default.getContainerParentForElement($droppableElement) ?? 0;
+ 
+     $droppableElement.removeClass(DragDrop.default.dropPossibleHoverClass);
+     const $pasteAction = typeof $draggableElement === 'number' || typeof $draggableElement === 'undefined';
+@@ -261,6 +261,9 @@ DragDrop.default = {
+         if (evt === 'copyFromAnotherPage') {
+           parameters['CB'] = {setCopyMode: 1};
+         }
++        if (containerParent) {
++          parameters['cmd']['tt_content'][contentElementUid]['copy']['update']['tx_container_parent'] = containerParent;
++        }
+         // fire the request, and show a message if it has failed
+         // This is adding a copy from another page "to this [selected] place".
+         AjaxDataHandler.process(parameters).then(function (result) {
+@@ -290,6 +293,9 @@ DragDrop.default = {
+             }
+           }
+         };
++        if (containerParent) {
++          parameters['cmd']['tt_content'][contentElementUid]['move']['update']['tx_container_parent'] = containerParent;
++        }
+         // fire the request, and show a message if it has failed
+         AjaxDataHandler.process(parameters).then(function (result) {
+           if (!result.hasErrors) {
+@@ -323,6 +329,20 @@ DragDrop.default = {
+     } else {
+       return false;
+     }
++  },
++
++  /**
++   * returns the next "upper" container parent parameter inside the code
++   * @param $element
++   * @return int|boolean the containerParent
++   */
++  getContainerParentForElement: function ($element) {
++    const $gridContainer = $element.closest('[data-tx-container-parent]');
++    if ($gridContainer.length && $gridContainer.data('txContainerParent') !== 'undefined') {
++      return $gridContainer.data('txContainerParent');
++    } else {
++      return false;
++    }
+   }
+ }
+ 
+diff --git a/Resources/Public/JavaScript/paste-reference.js b/Resources/Public/JavaScript/paste-reference.js
+index 4d199dc..efefb68 100644
+--- a/Resources/Public/JavaScript/paste-reference.js
++++ b/Resources/Public/JavaScript/paste-reference.js
+@@ -160,7 +160,9 @@ Paste.activatePasteIcons = function () {
+ 
+   $('.t3js-page-new-ce').each(function () {
+ 
+-    if (!$(this).find('.icon-actions-plus').length) {
++    // '.icon-actions-plus belongs to default template
++    // '.icon-actions-add' belongs to EXT:contaier
++    if (!$(this).find('.icon-actions-plus, .icon-actions-add').length) {
+       return true;
+     }
+ 
+@@ -171,22 +173,21 @@ Paste.activatePasteIcons = function () {
+       $.when($(this).find('button.t3js-paste'))
+       .then(() => {
+ 
+-          // disable default click-EventListener
+-          $(document).off('click', '.t3js-paste');
++          // replace class and in consequence the corresponding EventListener
++          $(this).find('button.t3js-paste').addClass('t3js-paste-default').removeClass('t3js-paste');
+ 
+-          // add custom click-EventListener
+-          $(document).on('click', '.t3js-paste', (evt) => {
++          // add custom click-EventListener on default paste button
++          $(this).on('click', '.t3js-paste-default', (evt) => {
+             evt.preventDefault();
+             Paste.activatePasteModal($(evt.currentTarget));
+           });
+ 
+-          $.when($(this).find('button.t3js-paste').after(top.copyFromAnotherPageLinkTemplate))
++          // promise to add custom button and eventHandler if 'button.t3js-paste' is found
++          $.when($(this).find('button.t3js-paste-default').after(top.copyFromAnotherPageLinkTemplate))
+             .then(
+               onReady.initClickEventListener($(this))
+             )
+-            .catch(
+-              (error) => {console.error(error)}
+-            );
++            .catch((error) => {console.error(error)});
+         })
+         .catch((error) => {console.error(error)});
+ 

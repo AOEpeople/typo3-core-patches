@@ -1,0 +1,11 @@
+diff --git a/Configuration/TypoScript/ImageRendering/setup.typoscript b/Configuration/TypoScript/ImageRendering/setup.typoscript
+index 39a6e76..5ce5ed4 100755
+--- a/Configuration/TypoScript/ImageRendering/setup.typoscript
++++ b/Configuration/TypoScript/ImageRendering/setup.typoscript
+@@ -40,5 +40,5 @@ lib.parseFunc {
+ 
+ # RTE-specific configuration - inherits from lib.parseFunc when available
+ # Adds fix for paragraph wrapping issue (#112)
+-lib.parseFunc_RTE < lib.parseFunc
++# lib.parseFunc_RTE < lib.parseFunc
+ lib.parseFunc_RTE.nonTypoTagStdWrap.encapsLines.encapsTagList := addToList(img)
